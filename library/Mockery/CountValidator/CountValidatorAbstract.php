@@ -62,8 +62,8 @@ abstract class CountValidatorAbstract
     /**
      * Validate the call count against this validator
      *
-     * @param int $n
+     * @param int $callCount
      * @return bool
      */
-    abstract public function validate($n);
+    abstract public function validate($callCount);
 }

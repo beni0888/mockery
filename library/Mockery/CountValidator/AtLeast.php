@@ -38,25 +38,47 @@ class AtLeast extends CountValidatorAbstract
     /**
      * Validate the call count against this validator
      *
-     * @param int $n
+     * @param int $callCount
      * @return bool
+     * @throws Mockery\Exception\InvalidCountException
      */
-    public function validate($n)
+    public function validate($callCount)
     {
-        if ($this->_limit > $n) {
-            $exception = new Mockery\Exception\InvalidCountException(
-                'Method ' . (string) $this->_expectation
-                . ' from ' . $this->_expectation->getMock()->mockery_getName()
-                . ' should be called' . PHP_EOL
-                . ' at least ' . $this->_limit . ' times but called ' . $n
-                . ' times.'
-            );
-            $exception->setMock($this->_expectation->getMock())
-                ->setMethodName((string) $this->_expectation)
-                ->setExpectedCountComparative('>=')
-                ->setExpectedCount($this->_limit)
-                ->setActualCount($n);
-            throw $exception;
-        }
+        if ($callCount >= $this->_limit) return false;
+
+        $exception = $this->createException($callCount);
+        $exception = $this->populate($exception, $callCount);
+        throw $exception;
+    }
+
+    /**
+     * @param int $callCount
+     * @return Mockery\Exception\InvalidCountException
+     */
+    private function createException($callCount)
+    {
+        $exception = new Mockery\Exception\InvalidCountException(
+            'Method ' . (string)$this->_expectation
+            . ' from ' . $this->_expectation->getMock()->mockery_getName()
+            . ' should be called' . PHP_EOL
+            . ' at least ' . $this->_limit . ' times but called ' . $callCount
+            . ' times.'
+        );
+        return $exception;
+    }
+
+    /**
+     * @param int $count
+     * @param Mockery\Exception\InvalidCountException $exception
+     * @return Mockery\Exception\InvalidCountException
+     */
+    private function populate($exception, $count)
+    {
+        $exception->setMock($this->_expectation->getMock())
+            ->setMethodName((string)$this->_expectation)
+            ->setExpectedCountComparative('>=')
+            ->setExpectedCount($this->_limit)
+            ->setActualCount($count);
+        return $exception;
     }
 }
